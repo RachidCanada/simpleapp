@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gestion des Utilisateurs</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            color: #333;
+        }
+        h1 {
+            color: #333;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 20px;
+        }
+        table, th, td {
+            border: 1px solid #ddd;
+        }
+        th, td {
+            padding: 8px;
+            text-align: left;
+        }
+        th {
+            background-color: #f4f4f4;
+        }
+        .section {
+            margin-bottom: 20px;
+        }
+        button {
+            background-color: #ff4d4d;
+            color: white;
+            border: none;
+            padding: 5px 10px;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #e60000;
+        }
+        .form-control {
+            padding: 5px;
+            margin-bottom: 10px;
+            width: 100%;
+        }
+        .submit-btn {
+            background-color: #4CAF50;
+            color: white;
+            padding: 8px 16px;
+            border: none;
+            cursor: pointer;
+        }
+        .submit-btn:hover {
+            background-color: #45a049;
+        }
+    </style>
+</head>
+<body>
+    <h1>Gestion des Utilisateurs</h1>
+
+    <div id="userList" class="section">
+        <h2>Liste des Utilisateurs</h2>
+        <table id="usersTable">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Nom</th>
+                    <th>Email</th>
+                    <th>Action</th>
+                </tr>
+            </thead>
+            <tbody>
+                <!-- Les utilisateurs seront ajoutés ici via JavaScript -->
+            </tbody>
+        </table>
+    </div>
+
+    <div id="createUser" class="section">
+        <h2>Créer un Nouvel Utilisateur</h2>
+        <form id="userForm">
+            <input type="text" id="name" name="name" placeholder="Nom" class="form-control" required>
+            <input type="email" id="email" name="email" placeholder="Email" class="form-control" required>
+            <button type="submit" class="submit-btn">Créer</button>
+        </form>
+    </div>
+
+    <script>
+        // Charger les utilisateurs via une API REST
+        async function loadUsers() {
+            const response = await fetch('/api/users');
+            const users = await response.json();
+            const usersTableBody = document.querySelector('#usersTable tbody');
+            usersTableBody.innerHTML = ''; // Efface le contenu précédent
+            users.forEach(user => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${user.id}</td>
+                    <td>${user.name}</td>
+                    <td>${user.email}</td>
+                    <td><button onclick="deleteUser(${user.id})">Supprimer</button></td>
+                `;
+                usersTableBody.appendChild(row);
+            });
+        }
+
+        // Ajouter un utilisateur via l'API REST
+        document.getElementById('userForm').addEventListener('submit', async function(event) {
+            event.preventDefault();
+            const name = document.getElementById('name').value;
+            const email = document.getElementById('email').value;
+
+            const response = await fetch('/api/users', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ name, email })
+            });
+
+            if (response.ok) {
+                alert('Utilisateur créé avec succès');
+                loadUsers(); // Recharger la liste des utilisateurs
+                document.getElementById('userForm').reset(); // Réinitialiser le formulaire
+            } else {
+                alert('Erreur lors de la création de l\'utilisateur');
+            }
+        });
+
+        // Supprimer un utilisateur via l'API REST
+        async function deleteUser(id) {
+            if (confirm("Voulez-vous vraiment supprimer cet utilisateur ?")) {
+                const response = await fetch(`/api/users/${id}`, {
+                    method: 'DELETE'
+                });
+
+                if (response.ok) {
+                    alert('Utilisateur supprimé');
+                    loadUsers(); // Recharger la liste des utilisateurs
+                } else {
+                    alert('Erreur lors de la suppression de l\'utilisateur');
+                }
+            }
+        }
+
+        // Charger les utilisateurs au démarrage
+        loadUsers();
+    </script>
+</body>
+</html>
